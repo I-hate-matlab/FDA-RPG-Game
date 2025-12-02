@@ -1,2 +1,7 @@
 body { font-family: Arial, sans-serif; text-align: center; background-color: #f4f4f4; }
 button { margin: 10px; padding: 10px 20px; font-size: 16px; }
+#stats { margin-top: 20px; font-weight: bold; }
+#progress-container { width: 80%; margin: 20px auto; background: #ddd; height: 20px; border-radius: 10px; }
+#progress-bar { height: 100%; width: 0%; background: #4caf50; border-radius: 10px; transition: width 0.5s; }
+#boss-animation { animation: flash 1s infinite; }
+@keyframes flash { 0% { color: red; } 50% { color: yellow; } 100% { color: red; } }
