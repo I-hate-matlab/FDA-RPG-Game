@@ -74,7 +74,11 @@ function chooseType(type) {
 function startGame(submissionType) {
     player.submissionType = submissionType;
     player.funding = 30; // Starting funding
+    player.xp = 0;
+    player.compliance = 0;
+    scenarioIndex = 0;
     document.getElementById('submission-choice').style.display = 'none';
+    document.getElementById('leaderboard').style.display = 'none';
     document.getElementById('challenge').style.display = 'block';
     currentScenarios = scenarios[player.type];
     loadScenario();
@@ -86,12 +90,12 @@ function loadScenario() {
         return;
     }
     document.getElementById('challenge-title').innerText = acts[Math.floor(scenarioIndex / 3)] + ' Phase ' + ((scenarioIndex % 3) + 1);
-    document.getElementById('scenario').innerText = 'Scenario: ' + currentScenarios[scenarioIndex];
     let optionsDiv = document.getElementById('options');
     optionsDiv.innerHTML = `<p>Options:</p><p>1) ${currentScenarios[scenarioIndex]}</p><p>2) Do nothing</p><p>3) ${badChoices[scenarioIndex % badChoices.length]}</p>`;
     document.getElementById('dice-result').innerText = '';
     document.getElementById('dice-animation').style.display = 'none';
     document.getElementById('next-button').style.display = 'none';
+    document.getElementById('roll-button').style.display = 'inline-block';
     updateStats();
     updateProgress();
 }
@@ -109,6 +113,7 @@ function rollDice() {
         document.getElementById('dice-result').innerText = `You rolled a ${roll}. Decision: ${chosenOption}`;
         applyChoice(choiceIndex);
         document.getElementById('next-button').style.display = 'inline-block';
+        document.getElementById('roll-button').style.display = 'none';
     }, 1500);
 }
 
@@ -203,4 +208,9 @@ function resetLeaderboard() {
     localStorage.removeItem('leaderboard');
     leaderboard = [];
     displayLeaderboard();
+}
+
+function startNewGame() {
+    document.getElementById('leaderboard').style.display = 'none';
+    document.getElementById('landing').style.display = 'block';
 }
