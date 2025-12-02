@@ -1,8 +1,8 @@
-let player = { type: '', xp: 0, funding: 0, compliance: 0, submissionType: '', comboClasses: [] };
+let player = { name: '', type: '', xp: 0, funding: 0, compliance: 0, submissionType: '', comboClasses: [] };
 let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
-let currentAct = 1;
 let scenarioIndex = 0;
 let currentScenarios = [];
+let actScenarioCounts = [];
 
 const submissionOptions = {
     'Device': ['Exempt', '510(k)', 'PMA'],
@@ -37,6 +37,11 @@ const scenarios = {
     }
 };
 
+const badChoices = [
+    'Conduct espionage', 'Bribe an auditor', 'Destroy competitor data', 'Fake clinical results', 'Hack FDA database',
+    'Sabotage rival trials', 'Forge ISO certificate', 'Hide adverse events', 'Tamper with labeling', 'Pay off reviewers'
+];
+
 const bosses = [
     'Boss 1: ISO Auditor',
     'Boss 2: FDA Reviewer',
@@ -46,6 +51,7 @@ const bosses = [
 ];
 
 function chooseType(type) {
+    player.name = document.getElementById('player-name').value.trim() || 'Anonymous';
     player.type = type;
     document.getElementById('landing').style.display = 'none';
     if (type === 'Combination') {
@@ -90,16 +96,22 @@ function startGame(submissionType) {
 }
 
 function prepareScenarios() {
+    currentScenarios = [];
+    actScenarioCounts = [];
     if (player.type === 'Combination') {
-        currentScenarios = [];
-        player.comboClasses.forEach(cls => {
-            for (let act = 1; act <= acts.length; act++) {
-                currentScenarios.push(...scenarios[cls][act]);
-            }
-        });
+        for (let act = 1; act <= acts.length; act++) {
+            let actScenarios = [];
+            player.comboClasses.forEach(cls => {
+                actScenarios.push(...scenarios[cls][act]);
+            });
+            currentScenarios.push(...actScenarios);
+            actScenarioCounts.push(actScenarios.length);
+        }
     } else {
         for (let act = 1; act <= acts.length; act++) {
-            currentScenarios.push(...scenarios[player.type][act]);
+            let actScenarios = scenarios[player.type][act];
+            currentScenarios.push(...actScenarios);
+            actScenarioCounts.push(actScenarios.length);
         }
     }
 }
@@ -109,12 +121,15 @@ function loadScenario() {
         endGame();
         return;
     }
-    let actNumber = Math.floor(scenarioIndex / 3) + 1;
-    document.getElementById('challenge-title').innerText = acts[actNumber - 1];
-    document.getElementById('scenario').innerText = currentScenarios[scenarioIndex];
+    let actNumber = getCurrentAct();
+    document.getElementById('challenge-title').innerText = acts[actNumber - 1] + ' Phase ' + ((scenarioIndex - getActStartIndex(actNumber) + 1));
+    document.getElementById('scenario').innerText = 'Choose your action:';
     let optionsDiv = document.getElementById('options');
     optionsDiv.innerHTML = '';
-    ['Good Choice', 'Neutral Choice', 'Bad Choice'].forEach((opt, idx) => {
+    let goodChoice = currentScenarios[scenarioIndex];
+    let neutralChoice = 'Do nothing';
+    let badChoice = badChoices[scenarioIndex % badChoices.length];
+    [goodChoice, neutralChoice, badChoice].forEach((opt, idx) => {
         let btn = document.createElement('button');
         btn.innerText = opt;
         btn.onclick = () => completeScenario(idx);
@@ -125,7 +140,6 @@ function loadScenario() {
 }
 
 function completeScenario(choiceIndex) {
-    // Branching logic: Good choice gives more points, bad choice less
     if (choiceIndex === 0) {
         player.xp += 15;
         player.funding += 10;
@@ -140,8 +154,8 @@ function completeScenario(choiceIndex) {
         player.compliance += 2;
     }
     scenarioIndex++;
-    if (scenarioIndex % 3 === 0) {
-        triggerBossAnimation();
+    if (scenarioIndex === getActEndIndex(getCurrentAct())) {
+        triggerBossAnimation(getCurrentAct());
         setTimeout(() => {
             document.getElementById('boss-animation').style.display = 'none';
             loadScenario();
@@ -151,13 +165,30 @@ function completeScenario(choiceIndex) {
     }
 }
 
-function triggerBossAnimation() {
+function getCurrentAct() {
+    let sum = 0;
+    for (let i = 0; i < actScenarioCounts.length; i++) {
+        sum += actScenarioCounts[i];
+        if (scenarioIndex < sum) return i + 1;
+    }
+    return acts.length;
+}
+
+function getActStartIndex(actNumber) {
+    return actScenarioCounts.slice(0, actNumber - 1).reduce((a,b) => a+b, 0);
+}
+
+function getActEndIndex(actNumber) {
+    return actScenarioCounts.slice(0, actNumber).reduce((a,b) => a+b, 0);
+}
+
+function triggerBossAnimation(actNumber) {
     document.getElementById('boss-animation').style.display = 'block';
-    document.getElementById('boss-animation').innerText = bosses[Math.floor(scenarioIndex / 3) - 1] + ' defeated!';
+    document.getElementById('boss-animation').innerText = bosses[actNumber - 1] + ' defeated!';
 }
 
 function updateStats() {
-    document.getElementById('stats').innerText = `XP: ${player.xp} | Funding: ${player.funding} | Compliance: ${player.compliance}`;
+    document.getElementById('stats').innerText = `Player: ${player.name} | XP: ${player.xp} | Funding: ${player.funding} | Compliance: ${player.compliance}`;
 }
 
 function updateProgress() {
@@ -168,14 +199,14 @@ function updateProgress() {
 function endGame() {
     document.getElementById('challenge').style.display = 'none';
     document.getElementById('leaderboard').style.display = 'block';
-    leaderboard.push({ type: player.type, score: player.xp, funding: player.funding, compliance: player.compliance });
+    leaderboard.push({ name: player.name, type: player.type, score: player.xp, funding: player.funding, compliance: player.compliance });
     localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
     let scoresList = document.getElementById('scores');
     scoresList.innerHTML = '';
     leaderboard.sort((a,b) => b.score - a.score);
     leaderboard.forEach(entry => {
         let li = document.createElement('li');
-        li.innerText = `${entry.type} - XP: ${entry.score}, Funding: ${entry.funding}, Compliance: ${entry.compliance}`;
+        li.innerText = `${entry.name} (${entry.type}) - XP: ${entry.score}, Funding: ${entry.funding}, Compliance: ${entry.compliance}`;
         scoresList.appendChild(li);
     });
 }
