@@ -12,11 +12,18 @@
   <div id="landing" style="display:block;">
     <h1>Welcome to FDA Compliance Challenge!</h1>
     <p><strong>How to Play:</strong></p>
-   !</li>
+    <ul style="text-align:left; max-width:600px; margin:auto;">
+      <li>Enter your name and select a product type (Device, Drug, Biologic).</li>
+      <li>Choose your submission type for bonus funding.</li>
+      <li>Roll the dice each turn to make a decision: Good, Neutral, or Bad.</li>
+      <li>Good choices earn XP, Funding, and Compliance points.</li>
+      <li>Neutral choices give smaller rewards; bad choices cause penalties.</li>
+      <li>Face Boss phases every 3 scenarios for extra rewards.</li>
+      <li>Game ends after all scenarios. Check the leaderboard!</li>
     </ul>
-    <p>Enter your name:</p>
+    <p><strong>Enter your name:</strong></p>
     <input type="text" id="player-name" placeholder="Your name">
-    <p>Select your product type:</p>
+    <p><strong>Select your product type:</strong></p>
     <button onclick="chooseType('Device')">Device</button>
     <button onclick="chooseType('Drug')">Drug</button>
     <button onclick="chooseType('Biologic')">Biologic</button>
@@ -57,4 +64,3 @@
     <button onclick="resetLeaderboard()">Reset Leaderboard</button>
   </div>
 </body>
-</html>
