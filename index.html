@@ -1,18 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang='en'>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset='UTF-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
   <title>FDA Compliance Challenge</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+  <link rel='stylesheet' href='style.css'>
+  <script src='script.js' defer></script>
 </head>
 <body>
-  <!-- Instructional Landing Page -->
-  <div id="landing" style="display:block;">
+  <!-- Landing Page -->
+  <div id='landing' style='display:block;'>
     <h1>Welcome to FDA Compliance Challenge!</h1>
     <p><strong>How to Play:</strong></p>
-    <ul style="text-align:left; max-width:600px; margin:auto;">
+    <ul style='text-align:left; max-width:600px; margin:auto;'>
       <li>Enter your name and select a product type (Device, Drug, Biologic).</li>
       <li>Choose your submission type for bonus funding.</li>
       <li>Roll the dice each turn to make a decision: Good, Neutral, or Bad.</li>
@@ -22,7 +22,7 @@
       <li>Game ends after all scenarios. Check the leaderboard!</li>
     </ul>
     <p><strong>Enter your name:</strong></p>
-    <input type="text" id="player-name" placeholder="Your name">
+    <input type='text' id='player-name' placeholder='Your name'>
     <p><strong>Select your product type:</strong></p>
     <button onclick="chooseType('Device')">Device</button>
     <button onclick="chooseType('Drug')">Drug</button>
@@ -30,38 +30,38 @@
   </div>
 
   <!-- Submission Choice -->
-  <div id="submission-choice" style="display:none;">
-    <h2 id="submission-title"></h2>
-    <div id="submission-options"></div>
-    <p id="submission-info"></p>
+  <div id='submission-choice' style='display:none;'>
+    <h2 id='submission-title'></h2>
+    <div id='submission-options'></div>
+    <p id='submission-info'></p>
   </div>
 
   <!-- Challenge Section -->
-  <div id="challenge" style="display:none;">
-    <h2 id="challenge-title"></h2>
-    <div id="options"></div>
-    <div id="dice-animation">🎲</div>
-    <p id="dice-result"></p>
-    <button id="roll-button" onclick="rollDice()">Roll Dice</button>
-    <button id="next-button" onclick="nextScenario()" style="display:none;">Next</button>
-    <div id="stats"></div>
-    <div id="progress-container"><div id="progress-bar"></div></div>
-    <div id="explanation" style="margin-top:15px; font-style:italic;"></div>
+  <div id='challenge' style='display:none;'>
+    <h2 id='challenge-title'></h2>
+    <div id='options'></div>
+    <div id='dice-animation'>🎲</div>
+    <p id='dice-result'></p>
+    <button id='roll-button' onclick='rollDice()'>Roll Dice</button>
+    <button id='next-button' onclick='nextScenario()' style='display:none;'>Next</button>
+    <div id='stats'></div>
+    <div id='progress-container'><div id='progress-bar'></div></div>
+    <div id='explanation' style='margin-top:15px; font-style:italic;'></div>
   </div>
 
   <!-- Boss Phase -->
-  <div id="boss-phase" style="display:none;">
-    <h2 id="boss-title"></h2>
-    <div id="boss-options"></div>
-    <div id="stats-boss"></div>
+  <div id='boss-phase' style='display:none;'>
+    <h2 id='boss-title'></h2>
+    <div id='boss-options'></div>
+    <div id='stats-boss'></div>
   </div>
 
   <!-- Leaderboard -->
-  <div id="leaderboard" style="display:none;">
+  <div id='leaderboard' style='display:none;'>
     <h2>Leaderboard</h2>
-    <ul id="scores"></ul>
-    <button onclick="startNewGame()">Start New Game</button>
-    <button onclick="resetLeaderboard()">Reset Leaderboard</button>
+    <ul id='scores'></ul>
+    <button onclick='startNewGame()'>Start New Game</button>
+    <button onclick='resetLeaderboard()'>Reset Leaderboard</button>
   </div>
 </body>
 </html>
