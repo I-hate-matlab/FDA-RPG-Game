@@ -1,79 +1,181 @@
-let player = { type: '', xp: 0, funding: 0, compliance: 0 };
+let player = { type: '', xp: 0, funding: 0, compliance: 0, submissionType: '', comboClasses: [] };
 let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
 let currentAct = 1;
-let phase = 'act'; // 'act' or 'boss'
+let scenarioIndex = 0;
+let currentScenarios = [];
 
-const acts = [
-    { name: 'Design Inputs', scenario: 'Your device failed usability testing. What do you do?', options: ['Redo usability study', 'Ignore and proceed', 'Update risk analysis'] },
-    { name: 'Regulatory Pathway', scenario: 'You must choose a submission route for a novel device.', options: ['510(k)', 'PMA', 'De Novo'] },
-    { name: 'Clinical Trials', scenario: 'Phase II trial shows unexpected adverse events. Next step?', options: ['Pause trial and investigate', 'Continue as planned', 'Submit safety report'] },
-    { name: 'Submission and Review', scenario: 'FDA requests additional data during review.', options: ['Provide data promptly', 'Argue against request', 'Withdraw submission'] },
-    { name: 'Post-market', scenario: 'A serious adverse event occurs post-market. What is your first action?', options: ['File MDR report', 'Ignore and monitor', 'Recall product'] }
-];
+const submissionOptions = {
+    'Device': ['Exempt', '510(k)', 'PMA'],
+    'Drug': ['NDA', 'ANDA'],
+    'Biologic': ['BLA'],
+    'Combination': []
+};
+
+const acts = ['Design Inputs', 'Regulatory Pathway', 'Clinical Trials', 'Submission and Review', 'Post-market'];
+
+const scenarios = {
+    'Device': {
+        1: ['Perform risk analysis (ISO 14971)', 'Create Design History File', 'Conduct usability testing'],
+        2: ['Choose correct submission route', 'Prepare 510(k) summary', 'Verify labeling compliance'],
+        3: ['Plan clinical evaluation', 'Handle adverse events', 'Validate sterilization'],
+        4: ['Respond to FDA queries', 'Prepare eCTD', 'Ensure CAPA readiness'],
+        5: ['Manage MDR reporting', 'Conduct post-market surveillance', 'Handle recalls']
+    },
+    'Drug': {
+        1: ['Develop preclinical study plan', 'Ensure GCP compliance', 'Prepare IND'],
+        2: ['Select NDA or ANDA', 'Prepare labeling', 'Plan bioequivalence study'],
+        3: ['Conduct Phase I trial', 'Handle adverse events', 'Prepare statistical analysis'],
+        4: ['Submit NDA', 'Respond to FDA review', 'Prepare Advisory Committee briefing'],
+        5: ['Monitor pharmacovigilance', 'Submit periodic safety reports', 'Handle recalls']
+    },
+    'Biologic': {
+        1: ['Develop cell line characterization', 'Prepare BLA strategy', 'Ensure GMP compliance'],
+        2: ['Select BLA pathway', 'Prepare labeling', 'Plan comparability study'],
+        3: ['Conduct Phase I trial', 'Handle immunogenicity issues', 'Prepare statistical analysis'],
+        4: ['Submit BLA', 'Respond to FDA review', 'Prepare Advisory Committee briefing'],
+        5: ['Monitor post-market safety', 'Submit periodic safety reports', 'Handle recalls']
+    }
+};
 
 const bosses = [
-    { name: 'Boss 1: ISO Auditor', scenario: 'Defend your ISO 13485 compliance strategy.', options: ['Show QMS documentation', 'Blame supplier', 'Offer CAPA plan'] },
-    { name: 'Boss 2: FDA Reviewer', scenario: 'Defend your regulatory pathway choice.', options: ['Provide justification', 'Argue aggressively', 'Offer alternative route'] },
-    { name: 'Boss 3: Risk Council', scenario: 'Present your FMEA results under time pressure.', options: ['Show risk matrix', 'Skip details', 'Blame design team'] },
-    { name: 'Boss 4: Advisory Committee', scenario: 'Defend your clinical trial data.', options: ['Show statistical analysis', 'Hide negative results', 'Offer new trial'] },
-    { name: 'Boss 5: Post-market Audit', scenario: 'Respond to CAPA investigation.', options: ['Provide CAPA plan', 'Delay response', 'Ignore request'] }
+    'Boss 1: ISO Auditor',
+    'Boss 2: FDA Reviewer',
+    'Boss 3: Risk Council',
+    'Boss 4: Advisory Committee',
+    'Boss 5: Post-market Audit'
 ];
 
-function startGame(type) {
+function chooseType(type) {
     player.type = type;
     document.getElementById('landing').style.display = 'none';
+    if (type === 'Combination') {
+        document.getElementById('submission-title').innerText = 'Choose two classes for your combination product:';
+        let optionsDiv = document.getElementById('submission-options');
+        optionsDiv.innerHTML = '';
+        ['Device', 'Drug', 'Biologic'].forEach(opt => {
+            let btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.onclick = () => selectComboClass(opt);
+            optionsDiv.appendChild(btn);
+        });
+    } else {
+        document.getElementById('submission-title').innerText = 'Choose your submission type:';
+        let optionsDiv = document.getElementById('submission-options');
+        optionsDiv.innerHTML = '';
+        submissionOptions[type].forEach(opt => {
+            let btn = document.createElement('button');
+            btn.innerText = opt;
+            btn.onclick = () => startGame(opt);
+            optionsDiv.appendChild(btn);
+        });
+    }
+    document.getElementById('submission-choice').style.display = 'block';
+}
+
+function selectComboClass(opt) {
+    if (!player.comboClasses.includes(opt)) {
+        player.comboClasses.push(opt);
+    }
+    if (player.comboClasses.length === 2) {
+        startGame('Combination');
+    }
+}
+
+function startGame(submissionType) {
+    player.submissionType = submissionType;
+    document.getElementById('submission-choice').style.display = 'none';
     document.getElementById('challenge').style.display = 'block';
+    prepareScenarios();
     loadScenario();
 }
 
-function loadScenario() {
-    let scenarioObj;
-    if (phase === 'act') {
-        scenarioObj = acts[currentAct - 1];
-        document.getElementById('challenge-title').innerText = scenarioObj.name;
+function prepareScenarios() {
+    if (player.type === 'Combination') {
+        currentScenarios = [];
+        player.comboClasses.forEach(cls => {
+            for (let act = 1; act <= acts.length; act++) {
+                currentScenarios.push(...scenarios[cls][act]);
+            }
+        });
     } else {
-        scenarioObj = bosses[currentAct - 1];
-        document.getElementById('challenge-title').innerText = scenarioObj.name;
+        for (let act = 1; act <= acts.length; act++) {
+            currentScenarios.push(...scenarios[player.type][act]);
+        }
     }
-    document.getElementById('scenario').innerText = scenarioObj.scenario;
-    let optionsDiv = document.getElementById('options');
-    optionsDiv.innerHTML = '';
-    scenarioObj.options.forEach(opt => {
-        let btn = document.createElement('button');
-        btn.innerText = opt;
-        btn.onclick = () => completeChallenge();
-        optionsDiv.appendChild(btn);
-    });
 }
 
-function completeChallenge() {
-    player.xp += 10;
-    player.funding += 5;
-    player.compliance += 5;
-    if (phase === 'act') {
-        phase = 'boss';
-    } else {
-        currentAct++;
-        phase = 'act';
-    }
-    if (currentAct > acts.length) {
+function loadScenario() {
+    if (scenarioIndex >= currentScenarios.length) {
         endGame();
+        return;
+    }
+    let actNumber = Math.floor(scenarioIndex / 3) + 1;
+    document.getElementById('challenge-title').innerText = acts[actNumber - 1];
+    document.getElementById('scenario').innerText = currentScenarios[scenarioIndex];
+    let optionsDiv = document.getElementById('options');
+    optionsDiv.innerHTML = '';
+    ['Good Choice', 'Neutral Choice', 'Bad Choice'].forEach((opt, idx) => {
+        let btn = document.createElement('button');
+        btn.innerText = opt;
+        btn.onclick = () => completeScenario(idx);
+        optionsDiv.appendChild(btn);
+    });
+    updateStats();
+    updateProgress();
+}
+
+function completeScenario(choiceIndex) {
+    // Branching logic: Good choice gives more points, bad choice less
+    if (choiceIndex === 0) {
+        player.xp += 15;
+        player.funding += 10;
+        player.compliance += 10;
+    } else if (choiceIndex === 1) {
+        player.xp += 10;
+        player.funding += 5;
+        player.compliance += 5;
+    } else {
+        player.xp += 5;
+        player.funding += 2;
+        player.compliance += 2;
+    }
+    scenarioIndex++;
+    if (scenarioIndex % 3 === 0) {
+        triggerBossAnimation();
+        setTimeout(() => {
+            document.getElementById('boss-animation').style.display = 'none';
+            loadScenario();
+        }, 2000);
     } else {
         loadScenario();
     }
 }
 
+function triggerBossAnimation() {
+    document.getElementById('boss-animation').style.display = 'block';
+    document.getElementById('boss-animation').innerText = bosses[Math.floor(scenarioIndex / 3) - 1] + ' defeated!';
+}
+
+function updateStats() {
+    document.getElementById('stats').innerText = `XP: ${player.xp} | Funding: ${player.funding} | Compliance: ${player.compliance}`;
+}
+
+function updateProgress() {
+    let progressPercent = ((scenarioIndex) / currentScenarios.length) * 100;
+    document.getElementById('progress-bar').style.width = progressPercent + '%';
+}
+
 function endGame() {
     document.getElementById('challenge').style.display = 'none';
     document.getElementById('leaderboard').style.display = 'block';
-    leaderboard.push({ type: player.type, score: player.xp });
+    leaderboard.push({ type: player.type, score: player.xp, funding: player.funding, compliance: player.compliance });
     localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
     let scoresList = document.getElementById('scores');
     scoresList.innerHTML = '';
     leaderboard.sort((a,b) => b.score - a.score);
     leaderboard.forEach(entry => {
         let li = document.createElement('li');
-        li.innerText = entry.type + ': ' + entry.score;
+        li.innerText = `${entry.type} - XP: ${entry.score}, Funding: ${entry.funding}, Compliance: ${entry.compliance}`;
         scoresList.appendChild(li);
     });
 }
