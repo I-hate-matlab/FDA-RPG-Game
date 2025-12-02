@@ -1,4 +1,4 @@
-let player = { name: '', type: '', xp: 0, funding: 0, compliance: 0, submissionType: '' };
+let player = { name: '', type: '', xp: 0, funding: 0, compliance: 0, submissionType: '', bonusPercent: 0 };
 let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || [];
 let scenarioIndex = 0;
 let currentScenarios = [];
@@ -8,6 +8,30 @@ const submissionOptions = {
     'Device': ['Exempt', '510(k)', 'PMA'],
     'Drug': ['NDA', 'ANDA'],
     'Biologic': ['BLA']
+};
+
+const submissionInfo = {
+    'Device': {
+        'Exempt': 'No bonus (0%)',
+        '510(k)': 'Funding bonus: 5%',
+        'PMA': 'Funding bonus: 10%'
+    },
+    'Drug': {
+        'NDA': 'Funding bonus: 5%',
+        'ANDA': 'No bonus (0%)'
+    },
+    'Biologic': {
+        'BLA': 'No bonus (0%)'
+    }
+};
+
+const bonusPercentages = {
+    'Exempt': 0,
+    '510(k)': 5,
+    'PMA': 10,
+    'NDA': 5,
+    'ANDA': 0,
+    'BLA': 0
 };
 
 const acts = ['Design Inputs', 'Regulatory Pathway', 'Clinical Trials', 'Submission and Review', 'Post-market'];
@@ -68,12 +92,14 @@ function chooseType(type) {
         btn.onclick = () => startGame(opt);
         optionsDiv.appendChild(btn);
     });
+    document.getElementById('submission-info').innerText = 'Benefits: ' + Object.entries(submissionInfo[type]).map(([k,v]) => `${k}: ${v}`).join(', ');
     document.getElementById('submission-choice').style.display = 'block';
 }
 
 function startGame(submissionType) {
     player.submissionType = submissionType;
-    player.funding = 30; // Starting funding
+    player.bonusPercent = bonusPercentages[submissionType];
+    player.funding = 20; // Reduced starting funding
     player.xp = 0;
     player.compliance = 0;
     scenarioIndex = 0;
@@ -127,9 +153,13 @@ function applyChoice(choiceIndex) {
         player.funding += 5;
         player.compliance += 5;
     } else {
+        // Bad choice: subtract funding and compliance scaled by bonusPercent
+        let penaltyFactor = 1 + player.bonusPercent / 100;
         player.xp += 5;
-        player.funding += 2;
-        player.compliance += 2;
+        player.funding -= Math.floor(2 * penaltyFactor);
+        player.compliance -= Math.floor(2 * penaltyFactor);
+        if (player.funding < 0) player.funding = 0;
+        if (player.compliance < 0) player.compliance = 0;
     }
 }
 
@@ -161,7 +191,9 @@ function chooseBossOption(option) {
     if (player.funding >= option.cost) {
         player.funding -= option.cost;
         player.xp += option.reward.xp;
-        player.compliance += option.reward.compliance;
+        // Apply compliance reward + bonus
+        let bonusCompliance = Math.floor(option.reward.compliance * (1 + player.bonusPercent / 100));
+        player.compliance += bonusCompliance;
     } else {
         alert('Not enough funding for this option!');
         return;
