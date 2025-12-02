@@ -2,23 +2,33 @@
 <html>
 <head>
     <meta charset='UTF-8'>
-    <title>FDA Approval Quest</title>
+    <title>FDA Approval Quest - Advanced Plus</title>
     <link rel='stylesheet' href='style.css'>
 </head>
 <body>
     <div id='landing'>
         <h1>FDA Approval Quest</h1>
         <p>Select your product type:</p>
-        <button onclick="startGame('Device')">Device</button>
-        <button onclick="startGame('Drug')">Drug</button>
-        <button onclick="startGame('Biologic')">Biologic</button>
-        <button onclick="startGame('Combination')">Combination Product</button>
+        <button onclick="chooseType('Device')">Device</button>
+        <button onclick="chooseType('Drug')">Drug</button>
+        <button onclick="chooseType('Biologic')">Biologic</button>
+        <button onclick="chooseType('Combination')">Combination Product</button>
+    </div>
+
+    <div id='submission-choice' style='display:none;'>
+        <h2 id='submission-title'></h2>
+        <div id='submission-options'></div>
     </div>
 
     <div id='challenge' style='display:none;'>
         <h2 id='challenge-title'></h2>
         <p id='scenario'></p>
         <div id='options'></div>
+        <div id='stats'></div>
+        <div id='progress-container'>
+            <div id='progress-bar'></div>
+        </div>
+        <div id='boss-animation' style='display:none; font-size:24px; font-weight:bold; color:red;'>Boss Battle!</div>
     </div>
 
     <div id='leaderboard' style='display:none;'>
