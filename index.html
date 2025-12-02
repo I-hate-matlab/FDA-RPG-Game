@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset='UTF-8'>
-    <title>FDA Approval Quest - Boss Phase</title>
+    <title>FDA Approval Quest - Boss Phase + Fixes</title>
     <link rel='stylesheet' href='style.css'>
 </head>
 <body>
@@ -23,10 +23,9 @@
 
     <div id='challenge' style='display:none;'>
         <h2 id='challenge-title'></h2>
-        <p id='scenario'></p>
         <div id='options'></div>
         <div id='dice-container'>
-            <button onclick="rollDice()">Roll Dice</button>
+            <button id='roll-button' onclick="rollDice()">Roll Dice</button>
             <div id='dice-animation'>🎲</div>
             <p id='dice-result'></p>
         </div>
@@ -48,6 +47,7 @@
         <h2>Leaderboard</h2>
         <ol id='scores'></ol>
         <button onclick="resetLeaderboard()">Reset Leaderboard</button>
+        <button onclick="startNewGame()">Start New Game</button>
     </div>
 
     <script src='script.js'></script>
