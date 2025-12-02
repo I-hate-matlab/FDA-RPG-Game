@@ -123,23 +123,28 @@ function loadScenario() {
     }
     let actNumber = getCurrentAct();
     document.getElementById('challenge-title').innerText = acts[actNumber - 1] + ' Phase ' + ((scenarioIndex - getActStartIndex(actNumber) + 1));
-    document.getElementById('scenario').innerText = 'Choose your action:';
-    let optionsDiv = document.getElementById('options');
-    optionsDiv.innerHTML = '';
-    let goodChoice = currentScenarios[scenarioIndex];
-    let neutralChoice = 'Do nothing';
-    let badChoice = badChoices[scenarioIndex % badChoices.length];
-    [goodChoice, neutralChoice, badChoice].forEach((opt, idx) => {
-        let btn = document.createElement('button');
-        btn.innerText = opt;
-        btn.onclick = () => completeScenario(idx);
-        optionsDiv.appendChild(btn);
-    });
+    document.getElementById('scenario').innerText = 'Scenario: ' + currentScenarios[scenarioIndex];
+    document.getElementById('dice-result').innerText = '';
+    document.getElementById('dice-animation').style.display = 'none';
     updateStats();
     updateProgress();
 }
 
-function completeScenario(choiceIndex) {
+function rollDice() {
+    document.getElementById('dice-animation').style.display = 'block';
+    setTimeout(() => {
+        document.getElementById('dice-animation').style.display = 'none';
+        let roll = Math.floor(Math.random() * 6) + 1;
+        document.getElementById('dice-result').innerText = 'You rolled a ' + roll;
+        let choiceIndex;
+        if (roll === 1 || roll === 4) choiceIndex = 2; // bad
+        else if (roll === 2 || roll === 5) choiceIndex = 1; // neutral
+        else choiceIndex = 0; // good
+        applyChoice(choiceIndex);
+    }, 1500);
+}
+
+function applyChoice(choiceIndex) {
     if (choiceIndex === 0) {
         player.xp += 15;
         player.funding += 10;
@@ -201,6 +206,10 @@ function endGame() {
     document.getElementById('leaderboard').style.display = 'block';
     leaderboard.push({ name: player.name, type: player.type, score: player.xp, funding: player.funding, compliance: player.compliance });
     localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+    displayLeaderboard();
+}
+
+function displayLeaderboard() {
     let scoresList = document.getElementById('scores');
     scoresList.innerHTML = '';
     leaderboard.sort((a,b) => b.score - a.score);
@@ -209,4 +218,10 @@ function endGame() {
         li.innerText = `${entry.name} (${entry.type}) - XP: ${entry.score}, Funding: ${entry.funding}, Compliance: ${entry.compliance}`;
         scoresList.appendChild(li);
     });
+}
+
+function resetLeaderboard() {
+    localStorage.removeItem('leaderboard');
+    leaderboard = [];
+    displayLeaderboard();
 }
